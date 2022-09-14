@@ -39,7 +39,7 @@ contract AIMVault is ERC4626, Owned {
         cToken = _token;
     }
 
-    function afterDeposit(uint256 _assets, uint256 _shares) internal override {
+    function afterDeposit(uint256 _assets, uint256) internal override {
         uint256 depositAssets = _assets / 2;
         totalStrategyHoldings += depositAssets;
         UNDERLYING.approve(address(cToken), depositAssets);

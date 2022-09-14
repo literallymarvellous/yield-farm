@@ -3,6 +3,7 @@ pragma solidity 0.8.15;
 
 import {ERC20} from "@solmate/tokens/ERC20.sol";
 import {Auth, Authority} from "@solmate/auth/Auth.sol";
+import {Owned} from "@solmate/auth/Owned.sol";
 import {Bytes32AddressLib} from "@solmate/utils/Bytes32AddressLib.sol";
 
 import {AIMVault} from "./Vault.sol";
@@ -11,35 +12,31 @@ import {CErc20} from "./interface/CErcInterface.sol";
 /// @title Rari Vault Factory
 /// @author Transmissions11 and JetJadeja
 /// @notice Factory which enables deploying a Vault for any ERC20 token.
-contract VaultFactory is Auth {
+contract VaultFactory is Owned {
     using Bytes32AddressLib for address;
     using Bytes32AddressLib for bytes32;
 
     /// @notice Maps tokens to their vaults
-    mapping(ERC20 => AIMVault) vaults;
+    mapping(ERC20 => AIMVault) public vaults;
 
     /// @notice Creates a Vault factory.
     /// @param _owner The owner of the factory.
-    /// @param _authority The Authority of the factory.
-    constructor(address _owner, Authority _authority)
-        Auth(_owner, _authority)
-    {}
-
-    /*///////////////////////////////////////////////////////////////
-                          VAULT DEPLOYMENT LOGIC
-    //////////////////////////////////////////////////////////////*/
+    constructor(address _owner) Owned(_owner) {}
 
     /// @notice Emitted when a new Vault is deployed.
     /// @param vault The newly deployed Vault contract.
     /// @param underlying The underlying token the new Vault accepts.
+    /// @param cToken The Compound cToken that the Vault should accept.
     event VaultDeployed(AIMVault vault, ERC20 underlying, CErc20 cToken);
 
     /// @notice Deploys a new Vault which supports a specific underlying token.
     /// @dev This will revert if a Vault that accepts the same underlying token has already been deployed.
     /// @param underlying The ERC20 token that the Vault should accept.
+    /// @param cToken The Compound cToken that the Vault should accept.
     /// @return vault The newly deployed Vault contract which accepts the provided underlying token.
     function deployVault(ERC20 underlying, CErc20 cToken)
         external
+        onlyOwner
         returns (AIMVault vault)
     {
         // Use the CREATE2 opcode to deploy a new Vault contract.
@@ -51,10 +48,13 @@ contract VaultFactory is Auth {
         );
 
         emit VaultDeployed(vault, underlying, cToken);
+
+        vaults[underlying] = vault;
     }
 
     /// @notice Computes a Vault's address from its accepted underlying token.
     /// @param underlying The ERC20 token that the Vault should accept.
+    /// @param cToken The Compound cToken that the Vault should accept.
     /// @return The address of a Vault which accepts the provided underlying token.
     /// @dev The Vault returned may not be deployed yet. Use isVaultDeployed to check.
     function getVaultFromUnderlying(ERC20 underlying, CErc20 cToken)
