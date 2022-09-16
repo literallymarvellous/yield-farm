@@ -698,8 +698,8 @@
       }
     },
     "src/AIMVault.sol": {
-      "lastModificationDate": 1663160047794,
-      "contentHash": "55dd5aec5dc3c64f2ea25bd6046ec364",
+      "lastModificationDate": 1663309213763,
+      "contentHash": "8269c7a09b77d3f8130741609c8025ea",
       "sourceName": "src/AIMVault.sol",
       "solcConfig": {
         "settings": {
@@ -745,7 +745,7 @@
       }
     },
     "src/AIMVaultFactory.sol": {
-      "lastModificationDate": 1663160894866,
+      "lastModificationDate": 1663308045659,
       "contentHash": "270221073289d0c1aedf1cedb2d9a306",
       "sourceName": "src/AIMVaultFactory.sol",
       "solcConfig": {
@@ -831,52 +831,6 @@
         }
       }
     },
-    "test/Contract.t.sol": {
-      "lastModificationDate": 1662033929594,
-      "contentHash": "848ba83feec29a2e4d286c118102ae20",
-      "sourceName": "test/Contract.t.sol",
-      "solcConfig": {
-        "settings": {
-          "optimizer": {
-            "enabled": true,
-            "runs": 200
-          },
-          "metadata": {
-            "bytecodeHash": "ipfs"
-          },
-          "outputSelection": {
-            "*": {
-              "": [
-                "ast"
-              ],
-              "*": [
-                "abi",
-                "evm.bytecode",
-                "evm.deployedBytecode",
-                "evm.methodIdentifiers"
-              ]
-            }
-          },
-          "evmVersion": "london",
-          "libraries": {}
-        }
-      },
-      "imports": [
-        "lib/forge-std/src/Script.sol",
-        "lib/forge-std/src/StdJson.sol",
-        "lib/forge-std/src/Test.sol",
-        "lib/forge-std/src/Vm.sol",
-        "lib/forge-std/src/console.sol",
-        "lib/forge-std/src/console2.sol",
-        "lib/solmate/lib/ds-test/src/test.sol"
-      ],
-      "versionRequirement": "^0.8.13",
-      "artifacts": {
-        "ContractTest": {
-          "0.8.15+commit.e14f2714.Darwin.appleclang": "Contract.t.sol/ContractTest.json"
-        }
-      }
-    },
     "test/Vault.t.sol": {
       "lastModificationDate": 1663160839362,
       "contentHash": "4d0673812d9f6b866ea5180755cba48e",
@@ -935,8 +889,8 @@
       }
     },
     "test/VaultFactory.t.sol": {
-      "lastModificationDate": 1663304228419,
-      "contentHash": "990fee9146202c034fe43a8fa9aa0028",
+      "lastModificationDate": 1663310534928,
+      "contentHash": "108f325f588ed080ea8cc5ad4b787581",
       "sourceName": "test/VaultFactory.t.sol",
       "solcConfig": {
         "settings": {

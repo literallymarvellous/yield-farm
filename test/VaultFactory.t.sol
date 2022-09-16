@@ -41,6 +41,13 @@ contract VaultFactoryTest is Test {
         assertEq(address(vault.UNDERLYING()), address(underlying));
     }
 
+    function testFailNotOwnerDeployedVault() public {
+        address alice = vm.addr(1);
+        vm.prank(alice);
+        vm.expectRevert();
+        vaultFactory.deployVault(underlying, CDAI);
+    }
+
     function testFailNoDuplicateVaults() public {
         vm.expectRevert();
         vaultFactory.deployVault(underlying, CDAI);

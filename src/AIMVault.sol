@@ -45,7 +45,7 @@ contract AIMVault is ERC4626 {
         returns (uint256 shares)
     {
         // calculate the amount of assets to put into compound strategy
-        uint256 depositAssets = _assets / 2;
+        uint256 depositAssets = assets / 2;
         totalStrategyHoldings += depositAssets;
 
         // Check for rounding error since we round down in previewDeposit.
@@ -69,7 +69,7 @@ contract AIMVault is ERC4626 {
         assets = previewMint(shares); // No need to check for rounding error, previewMint rounds up.
 
         // calculate the amount of assets to put into compound strategy
-        uint256 depositAssets = _assets / 2;
+        uint256 depositAssets = assets / 2;
         totalStrategyHoldings += depositAssets;
 
         // Need to transfer before minting or ERC777s could reenter.
@@ -83,7 +83,10 @@ contract AIMVault is ERC4626 {
     }
 
     function afterDeposit(uint256 _assets, uint256) internal override {
-        UNDERLYING.approve(address(cToken), depositAssets);
+        require(
+            UNDERLYING.approve(address(cToken), _assets),
+            "COMP: Approve Failed"
+        );
         require(cToken.mint(_assets) == 0, "COMP: Deposit Failed");
     }
 
