@@ -10,8 +10,6 @@ import {CErc20} from "../src/interface/CErcInterface.sol";
 import {MockERC20} from "@solmate/test/utils/mocks/MockERC20.sol";
 
 contract VaultFactoryTest is Test {
-    address public DAI = 0x6B175474E89094C44Da98b954EedeAC495271d0F;
-
     // compound
     address public CDAI = 0x5d3a536E4D6DbD6114cc1Ead35777bAB948E3643;
 
@@ -22,12 +20,9 @@ contract VaultFactoryTest is Test {
     address owner;
 
     function setUp() public {
-        owner = vm.addr(1);
         vaultFactory = new AIMVaultFactory(address(this));
-        // underlying = ERC20(DAI);
         underlying = new MockERC20("Mock Token", "TKN", 18);
         cToken = CErc20(CDAI);
-        // AIMVault vault2 = new AIMVault(underlying, CDAI);
     }
 
     function testDeployVault() public {

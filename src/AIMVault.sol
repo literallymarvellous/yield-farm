@@ -11,6 +11,7 @@ import {FixedPointMathLib} from "@solmate/utils/FixedPointMathLib.sol";
 
 import {ERC20} from "@solmate/tokens/ERC20.sol";
 import {CErc20} from "./interface/CErcInterface.sol";
+import {IERC20} from "@openzeppelin/contracts/interfaces/IERC20.sol";
 
 contract AIMVault is ERC4626 {
     using SafeCastLib for uint256;

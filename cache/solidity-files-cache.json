@@ -262,6 +262,84 @@
         }
       }
     },
+    "lib/openzeppelin-contracts/contracts/interfaces/IERC20.sol": {
+      "lastModificationDate": 1663307865433,
+      "contentHash": "d151fbfe7939989b9acf22797b32058b",
+      "sourceName": "lib/openzeppelin-contracts/contracts/interfaces/IERC20.sol",
+      "solcConfig": {
+        "settings": {
+          "optimizer": {
+            "enabled": true,
+            "runs": 200
+          },
+          "metadata": {
+            "bytecodeHash": "ipfs"
+          },
+          "outputSelection": {
+            "*": {
+              "": [
+                "ast"
+              ],
+              "*": [
+                "abi",
+                "evm.bytecode",
+                "evm.deployedBytecode",
+                "evm.methodIdentifiers"
+              ]
+            }
+          },
+          "evmVersion": "london",
+          "libraries": {}
+        }
+      },
+      "imports": [
+        "lib/openzeppelin-contracts/contracts/token/ERC20/IERC20.sol"
+      ],
+      "versionRequirement": "^0.8.0",
+      "artifacts": {
+        "IERC20": {
+          "0.8.15+commit.e14f2714.Darwin.appleclang": "IERC20.sol/IERC20.json"
+        }
+      }
+    },
+    "lib/openzeppelin-contracts/contracts/token/ERC20/IERC20.sol": {
+      "lastModificationDate": 1662195890828,
+      "contentHash": "ad7c2d0af148c8f9f097d65deeb4da6b",
+      "sourceName": "lib/openzeppelin-contracts/contracts/token/ERC20/IERC20.sol",
+      "solcConfig": {
+        "settings": {
+          "optimizer": {
+            "enabled": true,
+            "runs": 200
+          },
+          "metadata": {
+            "bytecodeHash": "ipfs"
+          },
+          "outputSelection": {
+            "*": {
+              "": [
+                "ast"
+              ],
+              "*": [
+                "abi",
+                "evm.bytecode",
+                "evm.deployedBytecode",
+                "evm.methodIdentifiers"
+              ]
+            }
+          },
+          "evmVersion": "london",
+          "libraries": {}
+        }
+      },
+      "imports": [],
+      "versionRequirement": "^0.8.0",
+      "artifacts": {
+        "IERC20": {
+          "0.8.15+commit.e14f2714.Darwin.appleclang": "IERC20.sol/IERC20.json"
+        }
+      }
+    },
     "lib/solmate/lib/ds-test/src/test.sol": {
       "lastModificationDate": 1662034046209,
       "contentHash": "962996f0e05d5218857a538a62d7c47e",
@@ -462,7 +540,7 @@
       }
     },
     "lib/solmate/src/tokens/ERC20.sol": {
-      "lastModificationDate": 1662034044208,
+      "lastModificationDate": 1663324278081,
       "contentHash": "0c7c7ada139062536af09d69d96d395c",
       "sourceName": "lib/solmate/src/tokens/ERC20.sol",
       "solcConfig": {
@@ -698,8 +776,8 @@
       }
     },
     "src/AIMVault.sol": {
-      "lastModificationDate": 1663309213763,
-      "contentHash": "8269c7a09b77d3f8130741609c8025ea",
+      "lastModificationDate": 1663324806580,
+      "contentHash": "a8ec85a08c9633b2f4584ab3c577a150",
       "sourceName": "src/AIMVault.sol",
       "solcConfig": {
         "settings": {
@@ -728,6 +806,8 @@
         }
       },
       "imports": [
+        "lib/openzeppelin-contracts/contracts/interfaces/IERC20.sol",
+        "lib/openzeppelin-contracts/contracts/token/ERC20/IERC20.sol",
         "lib/solmate/src/auth/Auth.sol",
         "lib/solmate/src/auth/Owned.sol",
         "lib/solmate/src/mixins/ERC4626.sol",
@@ -775,6 +855,8 @@
         }
       },
       "imports": [
+        "lib/openzeppelin-contracts/contracts/interfaces/IERC20.sol",
+        "lib/openzeppelin-contracts/contracts/token/ERC20/IERC20.sol",
         "lib/solmate/src/auth/Auth.sol",
         "lib/solmate/src/auth/Owned.sol",
         "lib/solmate/src/mixins/ERC4626.sol",
@@ -832,8 +914,8 @@
       }
     },
     "test/Vault.t.sol": {
-      "lastModificationDate": 1663160839362,
-      "contentHash": "4d0673812d9f6b866ea5180755cba48e",
+      "lastModificationDate": 1663353172473,
+      "contentHash": "4ebd6d57bf0d9ef586aa01d0f78fecc7",
       "sourceName": "test/Vault.t.sol",
       "solcConfig": {
         "settings": {
@@ -868,10 +950,13 @@
         "lib/forge-std/src/Vm.sol",
         "lib/forge-std/src/console.sol",
         "lib/forge-std/src/console2.sol",
+        "lib/openzeppelin-contracts/contracts/interfaces/IERC20.sol",
+        "lib/openzeppelin-contracts/contracts/token/ERC20/IERC20.sol",
         "lib/solmate/lib/ds-test/src/test.sol",
         "lib/solmate/src/auth/Auth.sol",
         "lib/solmate/src/auth/Owned.sol",
         "lib/solmate/src/mixins/ERC4626.sol",
+        "lib/solmate/src/test/utils/mocks/MockERC20.sol",
         "lib/solmate/src/tokens/ERC20.sol",
         "lib/solmate/src/utils/Bytes32AddressLib.sol",
         "lib/solmate/src/utils/FixedPointMathLib.sol",
@@ -889,8 +974,8 @@
       }
     },
     "test/VaultFactory.t.sol": {
-      "lastModificationDate": 1663310534928,
-      "contentHash": "108f325f588ed080ea8cc5ad4b787581",
+      "lastModificationDate": 1663315014823,
+      "contentHash": "bc8340f46c489a014c0f52596b9ab8b4",
       "sourceName": "test/VaultFactory.t.sol",
       "solcConfig": {
         "settings": {
@@ -925,6 +1010,8 @@
         "lib/forge-std/src/Vm.sol",
         "lib/forge-std/src/console.sol",
         "lib/forge-std/src/console2.sol",
+        "lib/openzeppelin-contracts/contracts/interfaces/IERC20.sol",
+        "lib/openzeppelin-contracts/contracts/token/ERC20/IERC20.sol",
         "lib/solmate/lib/ds-test/src/test.sol",
         "lib/solmate/src/auth/Auth.sol",
         "lib/solmate/src/auth/Owned.sol",
