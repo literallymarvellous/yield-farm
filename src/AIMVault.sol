@@ -84,10 +84,7 @@ contract AIMVault is ERC4626 {
     }
 
     function afterDeposit(uint256 _assets, uint256) internal override {
-        require(
-            UNDERLYING.approve(address(cToken), _assets),
-            "COMP: Approve Failed"
-        );
+        UNDERLYING.approve(address(cToken), _assets);
         require(cToken.mint(_assets) == 0, "COMP: Deposit Failed");
     }
 
