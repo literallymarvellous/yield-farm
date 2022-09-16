@@ -935,8 +935,8 @@
       }
     },
     "test/VaultFactory.t.sol": {
-      "lastModificationDate": 1663161118476,
-      "contentHash": "43cd009593bfe50f972e471301e52bbf",
+      "lastModificationDate": 1663304228419,
+      "contentHash": "990fee9146202c034fe43a8fa9aa0028",
       "sourceName": "test/VaultFactory.t.sol",
       "solcConfig": {
         "settings": {

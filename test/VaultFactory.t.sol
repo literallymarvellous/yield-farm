@@ -51,5 +51,6 @@ contract VaultFactoryTest is Test {
     function testIsVaultDeployed() public {
         AIMVault vault = vaultFactory.deployVault(underlying, CDAI);
         assertTrue(vaultFactory.isVaultDeployed(vault));
+        assertTrue(vaultFactory.vaults(underlying) == vault);
     }
 }
