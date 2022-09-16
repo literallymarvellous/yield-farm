@@ -39,9 +39,50 @@ contract AIMVault is ERC4626 {
         cToken = CErc20(_token);
     }
 
-    function afterDeposit(uint256 _assets, uint256) internal override {
+    function deposit(uint256 assets, address receiver)
+        public
+        override
+        returns (uint256 shares)
+    {
+        // calculate the amount of assets to put into compound strategy
         uint256 depositAssets = _assets / 2;
         totalStrategyHoldings += depositAssets;
+
+        // Check for rounding error since we round down in previewDeposit.
+        require((shares = previewDeposit(assets)) != 0, "ZERO_SHARES");
+
+        // Need to transfer before minting or ERC777s could reenter.
+        asset.safeTransferFrom(msg.sender, address(this), assets);
+
+        _mint(receiver, shares);
+
+        emit Deposit(msg.sender, receiver, assets, shares);
+
+        afterDeposit(depositAssets, shares);
+    }
+
+    function mint(uint256 shares, address receiver)
+        public
+        override
+        returns (uint256 assets)
+    {
+        assets = previewMint(shares); // No need to check for rounding error, previewMint rounds up.
+
+        // calculate the amount of assets to put into compound strategy
+        uint256 depositAssets = _assets / 2;
+        totalStrategyHoldings += depositAssets;
+
+        // Need to transfer before minting or ERC777s could reenter.
+        asset.safeTransferFrom(msg.sender, address(this), assets);
+
+        _mint(receiver, shares);
+
+        emit Deposit(msg.sender, receiver, assets, shares);
+
+        afterDeposit(depositAssets, shares);
+    }
+
+    function afterDeposit(uint256 _assets, uint256) internal override {
         UNDERLYING.approve(address(cToken), depositAssets);
         require(cToken.mint(_assets) == 0, "COMP: Deposit Failed");
     }
@@ -103,10 +144,8 @@ contract AIMVault is ERC4626 {
         }
     }
 
-    function totalAssets() public view override returns (uint256) {
-        uint256 total = totalStrategyHoldings + totalFloat();
-
-        return total;
+    function totalAssets() public view override returns (uint256 total) {
+        total = totalStrategyHoldings + totalFloat();
     }
 
     /// @notice Returns the amount of underlying tokens that idly sit in the Vault.
