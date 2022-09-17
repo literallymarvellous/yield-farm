@@ -18,6 +18,9 @@ contract AIMVault is ERC4626 {
     using SafeTransferLib for ERC20;
     using FixedPointMathLib for uint256;
 
+    event TotalAssetsUpdate(uint256 amount);
+    event TottalUnderlyingUpdate(uint256 amount);
+
     /// @notice The underlying token the Vault accepts.
     ERC20 public immutable UNDERLYING;
 
@@ -93,8 +96,6 @@ contract AIMVault is ERC4626 {
         address receiver,
         address owner
     ) public override returns (uint256 shares) {
-        totalStrategyHoldings = compBalanceOfUnderlying();
-
         shares = previewWithdraw(assets); // No need to check for rounding error, previewWithdraw rounds up.
 
         if (msg.sender != owner) {
@@ -139,9 +140,15 @@ contract AIMVault is ERC4626 {
     }
 
     function beforeWithdraw(uint256 _assets, uint256) internal override {
-        if (totalFloat() < _assets) {
-            uint256 toRedeem = _assets - totalFloat();
-            require(cToken.redeem(toRedeem) == 0, "COMP: Redeem failed");
+        uint256 _totalFloat = totalFloat();
+
+        if (_totalFloat < _assets) {
+            uint256 toRedeem = _assets - _totalFloat;
+            totalStrategyHoldings -= toRedeem;
+            require(
+                cToken.redeemUnderlying(toRedeem) == 0,
+                "COMP: Redeem failed"
+            );
         }
     }
 
