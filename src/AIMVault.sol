@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity 0.8.15;
+pragma solidity 0.8.16;
 
 import {Auth} from "@solmate/auth/Auth.sol";
 import {Owned} from "@solmate/auth/Owned.sol";
@@ -13,7 +13,7 @@ import {ERC20} from "@solmate/tokens/ERC20.sol";
 import {CErc20} from "./interface/CErcInterface.sol";
 import {IERC20} from "@openzeppelin/contracts/interfaces/IERC20.sol";
 
-contract AIMVault is ERC4626 {
+contract AIMVault is ERC4626, Owned {
     using SafeCastLib for uint256;
     using SafeTransferLib for ERC20;
     using FixedPointMathLib for uint256;
@@ -27,17 +27,20 @@ contract AIMVault is ERC4626 {
     /// @notice The Compound cToken the Vault accepts.
     CErc20 public immutable cToken;
 
-    uint256 public totalUnderlyingHeld;
-
     /// @notice The underlying token that have been deposited into compound strategy
-    uint256 public totalStrategyHoldings;
+    uint256 private _totalStrategyHoldings;
 
-    constructor(ERC20 _UNDERLYING, address _token)
+    constructor(
+        ERC20 _UNDERLYING,
+        address _token,
+        address _owner
+    )
         ERC4626(
             _UNDERLYING,
             string(abi.encodePacked("Aim ", _UNDERLYING.name(), " Vault")),
             string(abi.encodePacked("av", _UNDERLYING.symbol()))
         )
+        Owned(_owner)
     {
         UNDERLYING = _UNDERLYING;
         cToken = CErc20(_token);
@@ -48,14 +51,14 @@ contract AIMVault is ERC4626 {
         override
         returns (uint256 shares)
     {
-        // calculate the amount of assets to put into compound strategy
-        uint256 depositAssets = assets / 2;
-        totalStrategyHoldings += depositAssets;
-
         // Check for rounding error since we round down in previewDeposit.
         require((shares = previewDeposit(assets)) != 0, "ZERO_SHARES");
 
-        // Need to transfer before minting or ERC777s could reenter.
+        // calculate the amount of assets to put into compound strategy
+        uint256 depositAssets = assets / 2;
+        _totalStrategyHoldings += depositAssets;
+
+        // // Need to transfer before minting or ERC777s could reenter.
         asset.safeTransferFrom(msg.sender, address(this), assets);
 
         _mint(receiver, shares);
@@ -74,7 +77,7 @@ contract AIMVault is ERC4626 {
 
         // calculate the amount of assets to put into compound strategy
         uint256 depositAssets = assets / 2;
-        totalStrategyHoldings += depositAssets;
+        _totalStrategyHoldings += depositAssets;
 
         // Need to transfer before minting or ERC777s could reenter.
         asset.safeTransferFrom(msg.sender, address(this), assets);
@@ -91,29 +94,6 @@ contract AIMVault is ERC4626 {
         require(cToken.mint(_assets) == 0, "COMP: Deposit Failed");
     }
 
-    function withdraw(
-        uint256 assets,
-        address receiver,
-        address owner
-    ) public override returns (uint256 shares) {
-        shares = previewWithdraw(assets); // No need to check for rounding error, previewWithdraw rounds up.
-
-        if (msg.sender != owner) {
-            uint256 allowed = allowance[owner][msg.sender]; // Saves gas for limited approvals.
-
-            if (allowed != type(uint256).max)
-                allowance[owner][msg.sender] = allowed - shares;
-        }
-
-        beforeWithdraw(assets, shares);
-
-        _burn(owner, shares);
-
-        emit Withdraw(msg.sender, receiver, owner, assets, shares);
-
-        asset.safeTransfer(receiver, assets);
-    }
-
     function redeem(
         uint256 shares,
         address receiver,
@@ -125,7 +105,8 @@ contract AIMVault is ERC4626 {
             if (allowed != type(uint256).max)
                 allowance[owner][msg.sender] = allowed - shares;
         }
-        totalStrategyHoldings = compBalanceOfUnderlying();
+
+        _totalStrategyHoldings = compBalanceOfUnderlying();
 
         // Check for rounding error since we round down in previewRedeem.
         require((assets = previewRedeem(shares)) != 0, "ZERO_ASSETS");
@@ -144,7 +125,7 @@ contract AIMVault is ERC4626 {
 
         if (_totalFloat < _assets) {
             uint256 toRedeem = _assets - _totalFloat;
-            totalStrategyHoldings -= toRedeem;
+            _totalStrategyHoldings -= toRedeem;
             require(
                 cToken.redeemUnderlying(toRedeem) == 0,
                 "COMP: Redeem failed"
@@ -153,7 +134,7 @@ contract AIMVault is ERC4626 {
     }
 
     function totalAssets() public view override returns (uint256 total) {
-        total = totalStrategyHoldings + totalFloat();
+        total = _totalStrategyHoldings + totalFloat();
     }
 
     /// @notice Returns the amount of underlying tokens that idly sit in the Vault.
@@ -174,5 +155,9 @@ contract AIMVault is ERC4626 {
 
     function compBalanceOfUnderlying() public returns (uint256) {
         return cToken.balanceOfUnderlying(address(this));
+    }
+
+    function updateTotalStrategyHoldings() external onlyOwner {
+        _totalStrategyHoldings = compBalanceOfUnderlying();
     }
 }

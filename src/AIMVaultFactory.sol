@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity 0.8.15;
+pragma solidity 0.8.16;
 
 import {ERC20} from "@solmate/tokens/ERC20.sol";
 import {Auth, Authority} from "@solmate/auth/Auth.sol";
@@ -34,17 +34,18 @@ contract AIMVaultFactory is Owned {
     /// @param underlying The ERC20 token that the Vault should accept.
     /// @param cToken The Compound cToken that the Vault should accept.
     /// @return vault The newly deployed Vault contract which accepts the provided underlying token.
-    function deployVault(ERC20 underlying, address cToken)
-        external
-        onlyOwner
-        returns (AIMVault vault)
-    {
+    function deployVault(
+        ERC20 underlying,
+        address cToken,
+        address owner
+    ) external onlyOwner returns (AIMVault vault) {
         // Use the CREATE2 opcode to deploy a new Vault contract.
         // This will revert if a Vault which accepts this underlying token has already
         // been deployed, as the salt would be the same and we can't deploy with it twice.
         vault = new AIMVault{salt: address(underlying).fillLast12Bytes()}(
             underlying,
-            cToken
+            cToken,
+            owner
         );
 
         emit VaultDeployed(vault, underlying, cToken);
@@ -57,11 +58,11 @@ contract AIMVaultFactory is Owned {
     /// @param cToken The Compound cToken that the Vault should accept.
     /// @return The address of a Vault which accepts the provided underlying token.
     /// @dev The Vault returned may not be deployed yet. Use isVaultDeployed to check.
-    function getVaultFromUnderlying(ERC20 underlying, address cToken)
-        external
-        view
-        returns (AIMVault)
-    {
+    function getVaultFromUnderlying(
+        ERC20 underlying,
+        address cToken,
+        address owner
+    ) external view returns (AIMVault) {
         return
             AIMVault(
                 payable(
@@ -79,7 +80,7 @@ contract AIMVaultFactory is Owned {
                                     // Deployment bytecode:
                                     type(AIMVault).creationCode,
                                     // Constructor arguments:
-                                    abi.encode(underlying, cToken)
+                                    abi.encode(underlying, cToken, owner)
                                 )
                             )
                         )

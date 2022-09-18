@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: UNLICENSED
-pragma solidity ^0.8.15;
+pragma solidity ^0.8.16;
 
 import "forge-std/Test.sol";
 import {console2} from "forge-std/console2.sol";
@@ -26,11 +26,21 @@ contract VaultFactoryTest is Test {
     }
 
     function testDeployVault() public {
-        AIMVault vault = vaultFactory.deployVault(underlying, CDAI);
+        AIMVault vault = vaultFactory.deployVault(
+            underlying,
+            CDAI,
+            address(this)
+        );
 
         assertTrue(vaultFactory.isVaultDeployed(vault));
         assertEq(
-            address(vaultFactory.getVaultFromUnderlying(underlying, CDAI)),
+            address(
+                vaultFactory.getVaultFromUnderlying(
+                    underlying,
+                    CDAI,
+                    address(this)
+                )
+            ),
             address(vault)
         );
         assertEq(address(vault.UNDERLYING()), address(underlying));
@@ -40,18 +50,22 @@ contract VaultFactoryTest is Test {
         address alice = vm.addr(1);
         vm.prank(alice);
         vm.expectRevert();
-        vaultFactory.deployVault(underlying, CDAI);
+        vaultFactory.deployVault(underlying, CDAI, address(this));
     }
 
     function testFailNoDuplicateVaults() public {
         vm.expectRevert();
-        vaultFactory.deployVault(underlying, CDAI);
+        vaultFactory.deployVault(underlying, CDAI, address(this));
         vm.expectRevert();
-        vaultFactory.deployVault(underlying, CDAI);
+        vaultFactory.deployVault(underlying, CDAI, address(this));
     }
 
     function testIsVaultDeployed() public {
-        AIMVault vault = vaultFactory.deployVault(underlying, CDAI);
+        AIMVault vault = vaultFactory.deployVault(
+            underlying,
+            CDAI,
+            address(this)
+        );
         assertTrue(vaultFactory.isVaultDeployed(vault));
         assertTrue(vaultFactory.vaults(underlying) == vault);
     }
