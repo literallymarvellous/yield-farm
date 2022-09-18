@@ -795,8 +795,8 @@
       }
     },
     "src/AIMVault.sol": {
-      "lastModificationDate": 1663498488400,
-      "contentHash": "1a284c2598100594097627ac1ce34a24",
+      "lastModificationDate": 1663537318464,
+      "contentHash": "ec010c27039bdf3293360a255948758b",
       "sourceName": "src/AIMVault.sol",
       "solcConfig": {
         "settings": {
@@ -936,8 +936,8 @@
       }
     },
     "test/Vault.t.sol": {
-      "lastModificationDate": 1663499527864,
-      "contentHash": "228d18a31c064f52e97445d1bcd54bcf",
+      "lastModificationDate": 1663540440210,
+      "contentHash": "d482b82798022a5fed100aea674c5e1f",
       "sourceName": "test/Vault.t.sol",
       "solcConfig": {
         "settings": {

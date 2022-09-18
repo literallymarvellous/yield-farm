@@ -58,7 +58,7 @@ contract AIMVault is ERC4626, Owned {
         uint256 depositAssets = assets / 2;
         _totalStrategyHoldings += depositAssets;
 
-        // // Need to transfer before minting or ERC777s could reenter.
+        // Need to transfer before minting or ERC777s could reenter.
         asset.safeTransferFrom(msg.sender, address(this), assets);
 
         _mint(receiver, shares);

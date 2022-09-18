@@ -30,6 +30,7 @@ contract VaultTest is Test {
     address owner;
     address public alice;
     address public bob;
+    address public john;
 
     uint256 georliFork;
     string URL = vm.envString("GOERLI_RPC_URL");
@@ -49,6 +50,10 @@ contract VaultTest is Test {
         );
         bob = vm.addr(
             0x4b0b2d904f0eb3d053f5b04169031c42072df7ebde70cb4433bb8cb9a1d45ecf
+        );
+
+        john = vm.addr(
+            0x905cd7bf44b257facf07805794510d54201a2ec66427a5f5645050e8abc72fd5
         );
 
         vm.label(address(vaultFactory), "vaultFactory");
@@ -156,18 +161,21 @@ contract VaultTest is Test {
 
         vm.prank(alice);
         underlying.transfer(bob, 1000000000);
-
-        console2.log("bob balance", underlying.balanceOf(bob));
+        vm.prank(alice);
+        underlying.transfer(john, 1000000000);
 
         vm.prank(alice);
-        underlying.approve(address(vault), aliceDeposit);
+        underlying.approve(address(vault), 1000000000);
 
-        assertEq(underlying.allowance(alice, address(vault)), aliceDeposit);
+        assertEq(underlying.allowance(alice, address(vault)), 1000000000);
 
         vm.prank(bob);
-        underlying.approve(address(vault), bobDeposit);
+        underlying.approve(address(vault), 1000000000);
 
-        assertEq(underlying.allowance(bob, address(vault)), bobDeposit);
+        vm.prank(john);
+        underlying.approve(address(vault), 1000000000);
+
+        assertEq(underlying.allowance(bob, address(vault)), 1000000000);
 
         // 1. Alice mints 200000000 shares (costs 200000000 tokens)
         vm.prank(alice);
@@ -222,9 +230,8 @@ contract VaultTest is Test {
         assertEq(vault.totalSupply(), 600000000);
         assertEq(vault.totalAssets(), 600000000);
 
+        // 3. Simulating yield from compound
         uint256 newBlock = block.number + 8000;
-
-        // 3. Simulating yield from compound                  |
         vm.roll(newBlock);
 
         // Share total and count for bob and alice stay the same
@@ -242,96 +249,115 @@ contract VaultTest is Test {
         uint256 aliceAssets = vault.convertToAssets(aliceShareAmount);
         uint256 bobAssets = vault.convertToAssets(bobShareAmount);
 
-        // subtracting 1 to reflect compound strategy cost
+        // delta is included to reflect compound strategy deposit cost
         // bob's and alice's assets should match total asset
-        assertEq(aliceAssets + bobAssets, vault.totalAssets() - 1);
+        assertApproxEqAbs(aliceAssets + bobAssets, vault.totalAssets(), 2);
 
-        // // 4. Alice deposits 2000 tokens (mints 1333 shares)
-        // hevm.prank(alice);
-        // vault.deposit(2000, alice);
+        // 4. Another round of mint from alice, bob and now John
+        vm.prank(alice);
+        vault.deposit(20000000, alice);
 
-        // assertEq(vault.totalSupply(), 7333);
-        // assertEq(vault.balanceOf(alice), 3333);
-        // assertEq(vault.convertToAssets(vault.balanceOf(alice)), 4999);
-        // assertEq(vault.balanceOf(bob), 4000);
-        // assertEq(vault.convertToAssets(vault.balanceOf(bob)), 6000);
+        vm.prank(bob);
+        vault.mint(20000000, bob);
+        // bobShareAmount = vault.convertToShares(bobUnderlyingAmount);
 
-        // // 5. Bob mints 2000 shares (costs 3001 assets)
-        // // NOTE: Bob's assets spent got rounded up
-        // // NOTE: Alices's vault assets got rounded up
-        // hevm.prank(bob);
-        // vault.mint(2000, bob);
+        vm.prank(john);
+        vault.deposit(70000000, john);
 
-        // assertEq(vault.totalSupply(), 9333);
-        // assertEq(vault.balanceOf(alice), 3333);
-        // assertEq(vault.convertToAssets(vault.balanceOf(alice)), 5000);
-        // assertEq(vault.balanceOf(bob), 6000);
-        // assertEq(vault.convertToAssets(vault.balanceOf(bob)), 9000);
+        // Sanity check.
+        // vault balance of address == shares minted
+        aliceShareAmount = vault.balanceOf(alice);
+        bobShareAmount = vault.balanceOf(bob);
+        uint256 johnShareAmount = vault.balanceOf(john);
+        preYeildShareBal = aliceShareAmount + bobShareAmount + johnShareAmount;
 
-        // // Sanity checks:
-        // // Alice and bob should have spent all their tokens now
-        // assertEq(underlying.balanceOf(alice), 0);
-        // assertEq(underlying.balanceOf(bob), 0);
-        // // Assets in vault: 4k (alice) + 7k (bob) + 3k (yield) + 1 (round up)
-        // assertEq(vault.totalAssets(), 14001);
+        aliceUnderlyingAmount = vault.convertToAssets(aliceShareAmount);
+        bobUnderlyingAmount = vault.convertToAssets(bobShareAmount);
+        uint256 johnUnderlyingAmount = vault.convertToAssets(johnShareAmount);
+        preYeildBal =
+            aliceUnderlyingAmount +
+            bobUnderlyingAmount +
+            johnUnderlyingAmount;
 
-        // // 6. Vault mutates by +3000 tokens
-        // // NOTE: Vault holds 17001 tokens, but sum of assetsOf() is 17000.
-        // underlying.mint(address(vault), mutationUnderlyingAmount);
-        // assertEq(vault.totalAssets(), 17001);
-        // assertEq(vault.convertToAssets(vault.balanceOf(alice)), 6071);
-        // assertEq(vault.convertToAssets(vault.balanceOf(bob)), 10929);
+        assertEq(vault.totalSupply(), preYeildShareBal);
+        assertApproxEqAbs(vault.totalAssets(), preYeildBal, 2);
 
-        // // 7. Alice redeem 1333 shares (2428 assets)
-        // hevm.prank(alice);
-        // vault.redeem(1333, alice, alice);
+        // 5. Simulating another round of yield from compound
+        newBlock = block.number + 2000;
+        vm.roll(newBlock);
 
-        // assertEq(underlying.balanceOf(alice), 2428);
-        // assertEq(vault.totalSupply(), 8000);
-        // assertEq(vault.totalAssets(), 14573);
-        // assertEq(vault.balanceOf(alice), 2000);
-        // assertEq(vault.convertToAssets(vault.balanceOf(alice)), 3643);
-        // assertEq(vault.balanceOf(bob), 6000);
-        // assertEq(vault.convertToAssets(vault.balanceOf(bob)), 10929);
+        // Share total and count for bob and alice stay the same
+        assertEq(vault.totalSupply(), preYeildShareBal);
+        assertEq(vault.balanceOf(alice), aliceShareAmount);
+        assertEq(vault.balanceOf(bob), bobShareAmount);
+        assertEq(vault.balanceOf(john), johnShareAmount);
 
-        // // 8. Bob withdraws 2929 assets (1608 shares)
-        // hevm.prank(bob);
-        // vault.withdraw(2929, bob, bob);
+        vault.updateTotalStrategyHoldings();
 
-        // assertEq(underlying.balanceOf(bob), 2929);
-        // assertEq(vault.totalSupply(), 6392);
-        // assertEq(vault.totalAssets(), 11644);
-        // assertEq(vault.balanceOf(alice), 2000);
-        // assertEq(vault.convertToAssets(vault.balanceOf(alice)), 3643);
-        // assertEq(vault.balanceOf(bob), 4392);
-        // assertEq(vault.convertToAssets(vault.balanceOf(bob)), 8000);
+        postYeildBal = vault.totalAssets();
+        assertGt(postYeildBal, preYeildBal);
 
-        // // 9. Alice withdraws 3643 assets (2000 shares)
-        // // NOTE: Bob's assets have been rounded back up
-        // hevm.prank(alice);
-        // vault.withdraw(3643, alice, alice);
+        aliceAssets = vault.convertToAssets(aliceShareAmount);
+        bobAssets = vault.convertToAssets(bobShareAmount);
+        uint256 johnAssets = vault.convertToAssets(johnShareAmount);
 
-        // assertEq(underlying.balanceOf(alice), 6071);
-        // assertEq(vault.totalSupply(), 4392);
-        // assertEq(vault.totalAssets(), 8001);
-        // assertEq(vault.balanceOf(alice), 0);
-        // assertEq(vault.convertToAssets(vault.balanceOf(alice)), 0);
-        // assertEq(vault.balanceOf(bob), 4392);
-        // assertEq(vault.convertToAssets(vault.balanceOf(bob)), 8001);
+        assertApproxEqAbs(
+            aliceAssets + bobAssets + johnAssets,
+            vault.totalAssets(),
+            2
+        );
 
-        // // 10. Bob redeem 4392 shares (8001 tokens)
-        // hevm.prank(bob);
-        // vault.redeem(4392, bob, bob);
-        // assertEq(underlying.balanceOf(bob), 10930);
-        // assertEq(vault.totalSupply(), 0);
-        // assertEq(vault.totalAssets(), 0);
-        // assertEq(vault.balanceOf(alice), 0);
-        // assertEq(vault.convertToAssets(vault.balanceOf(alice)), 0);
-        // assertEq(vault.balanceOf(bob), 0);
-        // assertEq(vault.convertToAssets(vault.balanceOf(bob)), 0);
+        // 8. Bob withdraws 30000000 assets
+        vm.prank(bob);
+        vault.withdraw(30000000, bob, bob);
 
-        // // Sanity check
-        // assertEq(underlying.balanceOf(address(vault)), 0);
+        bobShareAmount = vault.balanceOf(bob);
+        assertEq(bobAssets - 30000000, vault.convertToAssets(bobShareAmount));
+
+        // 9. Alice redeems half her shares
+        vm.prank(alice);
+        uint256 redeemShares = aliceShareAmount / 2;
+        vault.redeem(redeemShares, alice, alice);
+
+        assertEq(vault.balanceOf(alice), redeemShares);
+
+        // 10. John redeem all shares
+        uint256 johnUnderlyingPreRedeem = underlying.balanceOf(john);
+
+        vm.prank(john);
+        vault.redeem(johnShareAmount, john, john);
+
+        uint256 johnUnderlyingPostRedeem = underlying.balanceOf(john);
+        assertEq(vault.balanceOf(john), 0);
+
+        // current underlying balance >= previous balance before reddem + vault deposit
+        assertGe(johnUnderlyingPostRedeem, johnUnderlyingPreRedeem + 70000000);
+
+        // Sanity check
+        // Remainig shares == ALices's shares + Bob's shares
+        assertEq(
+            vault.balanceOf(alice) + vault.balanceOf(bob),
+            vault.totalSupply()
+        );
+
+        aliceAssets = vault.convertToAssets(vault.balanceOf(alice));
+        bobAssets = vault.convertToAssets(vault.balanceOf(bob));
+        assertApproxEqAbs(aliceAssets + bobAssets, vault.totalAssets(), 2);
+
+        // Bob redeems remaining shares
+        bobShareAmount = vault.balanceOf(bob);
+        vm.prank(bob);
+        vault.redeem(bobShareAmount, bob, bob);
+        assertEq(vault.balanceOf(bob), 0);
+
+        // Alice withdraws remaining assets
+        vm.prank(alice);
+        vault.withdraw(aliceAssets, alice, alice);
+        assertEq(vault.balanceOf(alice), 0);
+
+        // Vault should be empty
+        assertEq(vault.totalSupply(), 0);
+        assertApproxEqAbs(vault.totalAssets(), 0, 1);
     }
 
     function testFailDepositWithNotEnoughApproval() public {
