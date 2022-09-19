@@ -1,7 +1,8 @@
 ## Yield Farm
 
-####Project: Yield Farm
-####Author: Marvellous Ahiara
+#### Project: Yield Farm
+
+#### Author: Marvellous Ahiara
 
 ### Overview:
 
@@ -25,3 +26,30 @@ Smart Contracts: Actions performed by Protocol are done onchain and controlled b
 . CErcInterface.sol: Interface for Compound ctoken.
 
 ![](Untitled-2022-09-13-21101.png)
+
+### Setup
+
+#### CLone repo
+
+```sh
+git clone repo
+cd yield-farm
+```
+
+#### install dependecies and packages
+
+```sh
+forge install
+```
+
+#### Build smart contracts
+
+```sh
+forge build
+```
+
+#### Test smart contracts
+
+```sh
+forge test
+```

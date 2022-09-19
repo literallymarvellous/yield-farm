@@ -12,13 +12,6 @@ import {ERC4626} from "@solmate/mixins/ERC4626.sol";
 
 contract VaultTest is Test {
     // georli testnet
-    address public cWBTCG = 0x6CE27497A64fFFb5517AA4aeE908b1E7EB63B9fF;
-    address public WBTCG = 0xC04B0d3107736C32e19F1c62b2aF67BE61d63a05;
-
-    // address public DAIG = 0x2899a03ffDab5C90BADc5920b4f53B0884EB13cC;
-    address public DAIG = 0xdc31Ee1784292379Fbb2964b3B9C4124D8F89C60;
-    address public cDAIG = 0x0545a8eaF7ff6bB6F708CbB544EA55DBc2ad7b2a;
-
     address public USDCG = 0xD87Ba7A50B2E7E660f678A895E4B72E7CB4CCd9C;
     address public cUSDCG = 0xCEC4a43eBB02f9B80916F1c718338169d6d5C1F0;
 
