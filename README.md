@@ -53,3 +53,21 @@ forge build
 ```sh
 forge test
 ```
+
+#### deployment
+
+Create .env and add to file
+GOERLI_RPC_URL=....
+ETHERSCAN_KEY=....
+PRIVATE_KEY=....
+
+```sh
+forge script script/AIMVaultFactory.s.sol:MyScript --rpc-url $GOERLI_RPC_URL --broadcast --verify -vvvv
+```
+
+### Addresses
+
+#### Goerli
+
+Vault Factory: 0x01acae0cfe7ef3be9ba9a589f47e717fc4a8d591
+Deployed USDC Vault: 0x7670D40536B86764AAef92EdC69C13A58D047dA2

@@ -749,10 +749,10 @@
         }
       }
     },
-    "script/Contract.s.sol": {
-      "lastModificationDate": 1662033929594,
-      "contentHash": "3642d05d9c479368231825c40aaa276a",
-      "sourceName": "script/Contract.s.sol",
+    "script/AIMVaultFactory.s.sol": {
+      "lastModificationDate": 1663554418853,
+      "contentHash": "36a45a977c65bca28d5689dd02ae27b2",
+      "sourceName": "script/AIMVaultFactory.s.sol",
       "solcConfig": {
         "settings": {
           "optimizer": {
@@ -785,12 +785,25 @@
         "lib/forge-std/src/StdJson.sol",
         "lib/forge-std/src/Vm.sol",
         "lib/forge-std/src/console.sol",
-        "lib/forge-std/src/console2.sol"
+        "lib/forge-std/src/console2.sol",
+        "lib/openzeppelin-contracts/contracts/interfaces/IERC20.sol",
+        "lib/openzeppelin-contracts/contracts/token/ERC20/IERC20.sol",
+        "lib/solmate/src/auth/Auth.sol",
+        "lib/solmate/src/auth/Owned.sol",
+        "lib/solmate/src/mixins/ERC4626.sol",
+        "lib/solmate/src/tokens/ERC20.sol",
+        "lib/solmate/src/utils/Bytes32AddressLib.sol",
+        "lib/solmate/src/utils/FixedPointMathLib.sol",
+        "lib/solmate/src/utils/SafeCastLib.sol",
+        "lib/solmate/src/utils/SafeTransferLib.sol",
+        "src/AIMVault.sol",
+        "src/AIMVaultFactory.sol",
+        "src/interface/CErcInterface.sol"
       ],
-      "versionRequirement": "^0.8.13",
+      "versionRequirement": "^0.8.16",
       "artifacts": {
-        "ContractScript": {
-          "0.8.16+commit.07a7930e.Darwin.appleclang": "Contract.s.sol/ContractScript.json"
+        "MyScript": {
+          "0.8.16+commit.07a7930e.Darwin.appleclang": "AIMVaultFactory.s.sol/MyScript.json"
         }
       }
     },
@@ -936,8 +949,8 @@
       }
     },
     "test/Vault.t.sol": {
-      "lastModificationDate": 1663546395123,
-      "contentHash": "c4765d805bcc0679128197448d94cbb5",
+      "lastModificationDate": 1663553390893,
+      "contentHash": "a50299f2a7592a4501cd39b53310af13",
       "sourceName": "test/Vault.t.sol",
       "solcConfig": {
         "settings": {
