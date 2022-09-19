@@ -30,6 +30,11 @@ contract AIMVault is ERC4626, Owned {
     /// @notice The underlying token that have been deposited into compound strategy
     uint256 private _totalStrategyHoldings;
 
+    /// @notice Creates a new Vault with ERC20 Token as the underlying asset
+    /// @dev An Owner is initialized
+    /// @param _UNDERLYING ERC20 Token to deposit into vault as the underlying token
+    /// @param _token address of complimentary compound cToken to the underlying token. eg. USDC -> cUSDC
+    /// @param _owner address of the owner of the contract
     constructor(
         ERC20 _UNDERLYING,
         address _token,
@@ -46,6 +51,11 @@ contract AIMVault is ERC4626, Owned {
         cToken = CErc20(_token);
     }
 
+    /// @notice Deposits an amount of underlying tokens into the vault
+    /// @dev Half of the deposit is moved into Compound strategy using the cToken
+    /// @param assets amount of the underlying tokens
+    /// @param receiver address receiving the minted shares
+    /// @return shares amount of vault tokens minted to msg.sender
     function deposit(uint256 assets, address receiver)
         public
         override
@@ -68,6 +78,11 @@ contract AIMVault is ERC4626, Owned {
         afterDeposit(depositAssets, shares);
     }
 
+    /// @notice Depsoits a calculated amount of undelying tokens into vault based on minted vault tokens.
+    /// @dev Half of the deposit calculated from the minted shares is moved into the Compound strategy
+    /// @param shares amount of the vault shares to mint
+    /// @param receiver address receiving the minted shares
+    /// @return assets equivalent amount of underlying tokens to minted shares
     function mint(uint256 shares, address receiver)
         public
         override
@@ -89,11 +104,20 @@ contract AIMVault is ERC4626, Owned {
         afterDeposit(depositAssets, shares);
     }
 
+    /// @notice Transfers underlying token from vault to Compound strategy
+    /// @dev Executes in mint/deposit function
+    /// @param _assets underlying tokens to depsoit
     function afterDeposit(uint256 _assets, uint256) internal override {
         UNDERLYING.approve(address(cToken), _assets);
         require(cToken.mint(_assets) == 0, "COMP: Deposit Failed");
     }
 
+    /// @notice Redeem vault tokens ie.shares for deposited underlying tokens
+    /// @dev total yield from Compound is calculated before withdrawal
+    /// @param shares amount of vault tokens
+    /// @param receiver recipient address of assets
+    /// @param owner owner address of vault tokens ie. shares
+    /// @return assets amount of underlying tokens recieved
     function redeem(
         uint256 shares,
         address receiver,
@@ -120,6 +144,9 @@ contract AIMVault is ERC4626, Owned {
         asset.safeTransfer(receiver, assets);
     }
 
+    /// @notice Transfers underlying tokens from Compound strategy to Vault
+    /// @dev Executes in withdraw/redeem functions if vault lacks funds.
+    /// @param _assets amount of underlying tokens
     function beforeWithdraw(uint256 _assets, uint256) internal override {
         uint256 _totalFloat = totalFloat();
 
@@ -133,6 +160,9 @@ contract AIMVault is ERC4626, Owned {
         }
     }
 
+    /// @notice Returns amount of underlying token in both the Vault and Compound strategy
+    /// @dev Used in calculations for the amount of the underlying token/shares to deposit/withdraw
+    /// @return total amount of underlying tokens
     function totalAssets() public view override returns (uint256 total) {
         total = _totalStrategyHoldings + totalFloat();
     }
@@ -143,6 +173,9 @@ contract AIMVault is ERC4626, Owned {
         return UNDERLYING.balanceOf(address(this));
     }
 
+    /// @notice Compound strategy yield info
+    /// @return exchangeRate rate from cToken to underlying token
+    /// @return supplyRate rate of yield on deposit per block
     function getCompStrategyInfo()
         external
         returns (uint256 exchangeRate, uint256 supplyRate)
@@ -153,10 +186,14 @@ contract AIMVault is ERC4626, Owned {
         supplyRate = cToken.supplyRatePerBlock();
     }
 
+    /// @notice Returns amount of underlying token held in Compound strategy
+    /// @return amount of underlying token ie. cToken * exchangeRate
     function compBalanceOfUnderlying() public returns (uint256) {
         return cToken.balanceOfUnderlying(address(this));
     }
 
+    /// @notice Updates _totalStrategyHoldings
+    /// @dev sets _totalStrategyHoldings as amount of underlying token held in Compound strategy
     function updateTotalStrategyHoldings() external onlyOwner {
         _totalStrategyHoldings = compBalanceOfUnderlying();
     }
