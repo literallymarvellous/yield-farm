@@ -808,8 +808,8 @@
       }
     },
     "src/AIMVault.sol": {
-      "lastModificationDate": 1663537318464,
-      "contentHash": "ec010c27039bdf3293360a255948758b",
+      "lastModificationDate": 1663579872314,
+      "contentHash": "c9fd58d325d842e48920f070b995c0bc",
       "sourceName": "src/AIMVault.sol",
       "solcConfig": {
         "settings": {

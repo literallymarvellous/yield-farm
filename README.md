@@ -69,5 +69,8 @@ forge script script/AIMVaultFactory.s.sol:MyScript --rpc-url $GOERLI_RPC_URL --b
 
 #### Goerli
 
-Vault Factory: 0x01acae0cfe7ef3be9ba9a589f47e717fc4a8d591
-Deployed USDC Vault: 0x7670D40536B86764AAef92EdC69C13A58D047dA2
+Vault Factory: 0x81BE49C9584aA772d3005778D3c814cD1A90D179
+Deployed USDC Vault: 0x180046eed90687649D9e429A5B81Ff55C669fc0B
+
+<!-- Factory 0x01Acae0CFe7EF3be9BA9a589F47E717fc4A8D591 -->
+<!-- Vault 0x7670D40536B86764AAef92EdC69C13A58D047dA2 -->
