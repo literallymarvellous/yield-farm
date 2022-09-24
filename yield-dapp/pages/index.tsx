@@ -7,11 +7,13 @@ import VaultFactory from "../../out/AIMVaultFactory.sol/AIMVaultFactory.json";
 import Vault from "../../out/AIMVault.sol/AIMVault.json";
 import Spinner from "../components/spinner";
 import { BigNumber } from "ethers";
+import DepositModal from "../components/DepositModal";
 
 const Home: NextPage = () => {
   const [vaults, setVaults] = useState<any[]>([]);
+  const [underlying, setUnderlying] = useState("");
   const [isLoading, setIsLoading] = useState(true);
-  const { address, isConnected } = useAccount();
+  const { isConnected } = useAccount();
 
   useContractRead({
     addressOrName: "0x81BE49C9584aA772d3005778D3c814cD1A90D179",
@@ -42,10 +44,18 @@ const Home: NextPage = () => {
         contractInterface: Vault.abi,
         functionName: "totalAssets",
       },
+      {
+        addressOrName: vaults[0],
+        contractInterface: Vault.abi,
+        functionName: "UNDERLYING",
+      },
     ],
     onSettled(data, error) {
       if (error) console.log("error", error);
       console.log("success", data);
+      if (data) {
+        setUnderlying(String(data[3]));
+      }
     },
   });
 
@@ -102,12 +112,7 @@ const Home: NextPage = () => {
                   Total Assets:{" "}
                   {data && `${data[2].div(BigNumber.from(String(1e18)))}`}
                 </p>
-                <button
-                  className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-3 rounded"
-                  onClick={handleDeposit}
-                >
-                  deposit
-                </button>
+                <DepositModal vault={vaults[0]} underlying={underlying} />
               </div>
             ))
           )}
