@@ -18,9 +18,6 @@ contract AIMVault is ERC4626, Owned {
     using SafeTransferLib for ERC20;
     using FixedPointMathLib for uint256;
 
-    event TotalAssetsUpdate(uint256 amount);
-    event TottalUnderlyingUpdate(uint256 amount);
-
     /// @notice The underlying token the Vault accepts.
     ERC20 public immutable UNDERLYING;
 
