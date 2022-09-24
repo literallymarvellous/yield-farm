@@ -1,11 +1,12 @@
 import type { NextPage } from "next";
 import Head from "next/head";
 import Image from "next/image";
-import { useState } from "react";
+import { MouseEventHandler, useCallback, useState, MouseEvent } from "react";
 import { useContractRead, useAccount, useContractReads } from "wagmi";
 import VaultFactory from "../../out/AIMVaultFactory.sol/AIMVaultFactory.json";
 import Vault from "../../out/AIMVault.sol/AIMVault.json";
 import Spinner from "../components/spinner";
+import { BigNumber } from "ethers";
 
 const Home: NextPage = () => {
   const [vaults, setVaults] = useState<any[]>([]);
@@ -24,17 +25,22 @@ const Home: NextPage = () => {
     },
   });
 
-  useContractReads({
+  const { data } = useContractReads({
     contracts: [
       {
         addressOrName: vaults[0],
         contractInterface: Vault.abi,
-        functionName: "totalAssets",
+        functionName: "name",
       },
       {
         addressOrName: vaults[0],
         contractInterface: Vault.abi,
         functionName: "getCompStrategyInfo",
+      },
+      {
+        addressOrName: vaults[0],
+        contractInterface: Vault.abi,
+        functionName: "totalAssets",
       },
     ],
     onSettled(data, error) {
@@ -42,6 +48,8 @@ const Home: NextPage = () => {
       console.log("success", data);
     },
   });
+
+  const handleDeposit = (e: MouseEvent<HTMLButtonElement>) => {};
 
   console.log("render");
   // console.log(isLoading);
@@ -77,10 +85,27 @@ const Home: NextPage = () => {
           ) : (
             vaults.map((vault) => (
               <div key={vault} className="p-2">
-                <p>Assest: </p>
-                <p>APY: </p>
-                <p>Total Assets</p>
-                <button className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-3 rounded">
+                <p>{data && data[0]}</p>
+                <p>
+                  APY:{" "}
+                  {data &&
+                    `${(
+                      (Math.pow(
+                        (data[1][1].toNumber() / 1e18) * 6570 + 1,
+                        365
+                      ) -
+                        1) *
+                      100
+                    ).toFixed(2)}%`}
+                </p>
+                <p>
+                  Total Assets:{" "}
+                  {data && `${data[2].div(BigNumber.from(String(1e18)))}`}
+                </p>
+                <button
+                  className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-3 rounded"
+                  onClick={handleDeposit}
+                >
                   deposit
                 </button>
               </div>
