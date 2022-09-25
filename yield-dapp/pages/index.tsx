@@ -95,10 +95,10 @@ const Home: NextPage = () => {
           ) : (
             vaults.map((vault) => (
               <div key={vault} className="p-2">
-                <p>{data && data[0]}</p>
+                <p>{data?.[0] && data[0]}</p>
                 <p>
                   APY:{" "}
-                  {data &&
+                  {data?.[1] &&
                     `${(
                       (Math.pow(
                         (data[1][1].toNumber() / 1e18) * 6570 + 1,
@@ -110,7 +110,7 @@ const Home: NextPage = () => {
                 </p>
                 <p>
                   Total Assets:{" "}
-                  {data && `${data[2].div(BigNumber.from(String(1e18)))}`}
+                  {data?.[2] && `${data[2].div(BigNumber.from(String(1e18)))}`}
                 </p>
                 <DepositModal vault={vaults[0]} underlying={underlying} />
               </div>

@@ -8,13 +8,14 @@ import React, {
 import { Dialog, Transition } from "@headlessui/react";
 import {
   useAccount,
+  useConnect,
   useContractRead,
   useContractReads,
   useContractWrite,
   usePrepareContractWrite,
 } from "wagmi";
-import { erc20ABI } from "wagmi";
 import ERC20 from "../../out/ERC20.sol/ERC20.json";
+import Vault from "../../out/AIMVault.sol/AIMVault.json";
 
 const DepositModal = ({
   vault,
@@ -24,11 +25,15 @@ const DepositModal = ({
   underlying: string;
 }) => {
   const [isOpen, setIsOpen] = useState(false);
-  const [deposit, setDeposit] = useState("");
+  const [deposit, setDeposit] = useState("0");
+  const [amount, setAmount] = useState(0);
   const [approveDisabled, setApproveDisabled] = useState(true);
   const [depositDisabled, setDepositDisabled] = useState(true);
 
   const { address } = useAccount();
+  const { data: ConnectData } = useConnect();
+
+  const confirmationNo = ConnectData?.chain.id === 5 ? 1 : 3;
 
   const { data } = useContractReads({
     contracts: [
@@ -57,38 +62,74 @@ const DepositModal = ({
   });
 
   const { config: approvalConfig } = usePrepareContractWrite({
-    addressOrName: vault,
+    addressOrName: underlying,
     contractInterface: ERC20.abi,
-    functionName: "deposit",
+    functionName: "approve",
     args: [vault, parseInt(deposit)],
+    onSettled(data, error) {
+      if (error) console.log("error", error);
+
+      console.log("approval config", data);
+    },
   });
-  const { write: approvalWrite } = useContractWrite(approvalConfig);
+  const { write: approvalWrite } = useContractWrite({
+    ...approvalConfig,
+    onSettled(data, error) {
+      if (error) console.log("error", error);
+      console.log("approved", data);
+      data?.wait(confirmationNo).then((res) => console.log("confirmed", res));
+      setDepositDisabled(false);
+    },
+  });
 
   const { config: depositConfig } = usePrepareContractWrite({
-    addressOrName: "underlying",
-    contractInterface: ERC20.abi,
-    functionName: "",
-    args: [deposit, address],
+    addressOrName: vault,
+    contractInterface: Vault.abi,
+    functionName: "deposit",
+    args: [parseInt(deposit), address],
+    onSettled(data, error) {
+      if (error) console.log("error", error);
+
+      console.log("deposit config", data);
+    },
   });
-  const { write: depositWrite } = useContractWrite(depositConfig);
+  const { write: depositWrite } = useContractWrite({
+    ...depositConfig,
+    onSettled(data, error) {
+      if (error) console.log("error", error);
+
+      console.log("deposited", data);
+      data?.wait(confirmationNo).then((res) => console.log("confirmed", res));
+    },
+  });
 
   const closeModal = () => {
+    setDeposit("0");
     setIsOpen(false);
   };
 
   const openModal = () => {
-    const allowance = data?.[0].toString();
+    console.log("data", data);
+    const allowance = data?.[0]?.toString();
 
     if (allowance && parseInt(allowance) == 0) {
       setApproveDisabled(false);
     }
 
+    if (allowance && parseInt(allowance) > 0) {
+      setDepositDisabled(false);
+    }
+
+    console.log("dep", parseInt(deposit));
+
     setIsOpen(true);
   };
 
   const handleChange = (e: ChangeEvent<HTMLInputElement>) => {
-    const allowance = data?.[0].toString();
+    const allowance = data?.[0]?.toString();
     const amount = e.target.value;
+
+    setApproveDisabled(false);
 
     if (allowance && parseInt(allowance) > parseInt(amount)) {
       setDepositDisabled(false);
@@ -96,18 +137,19 @@ const DepositModal = ({
     setDeposit(amount);
   };
 
-  const handleApproval = (e: MouseEvent<HTMLButtonElement>) => {
-    const balance = data?.[2].toString();
+  const handleApproval = () => {
+    const balance = data?.[2]?.toString();
     if (balance && parseInt(deposit) > parseInt(balance)) {
       return;
     }
 
+    // setAmount(parseInt(deposit));
     approvalWrite?.();
   };
 
-  const handleDeposit = (e: MouseEvent<HTMLButtonElement>) => {
-    const allowance = data?.[0].toString();
-    const balance = data?.[2].toString();
+  const handleDeposit = () => {
+    const allowance = data?.[0]?.toString();
+    const balance = data?.[2]?.toString();
     console.log("allownace", allowance);
 
     if (
@@ -119,7 +161,13 @@ const DepositModal = ({
       return;
     }
 
+    // setAmount(parseInt(deposit));
+
     depositWrite?.();
+  };
+
+  const setMaxAmount = () => {
+    data?.[2] && setDeposit(data[2].toString());
   };
 
   return (
@@ -178,7 +226,12 @@ const DepositModal = ({
                     </div>
                   </div>
 
-                  <div>Balance: {data && `${data[2]} ${data[1]}`}</div>
+                  <div>
+                    Balance:{" "}
+                    {data?.[2] ? `${data[2]} ${data[1]}` : "Not Connected"}
+                  </div>
+
+                  <div>Allowance: {data?.[0] && data[0].toString()}</div>
 
                   <div className="my-8 flex justify-between items-center gap-4">
                     <input
@@ -188,7 +241,10 @@ const DepositModal = ({
                       onChange={handleChange}
                     />
 
-                    <button className="rounded-md border border-black px-2 py-1 border-transparent text-lg font-medium text-black hover:bg-blue-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2">
+                    <button
+                      className="rounded-md border border-black px-2 py-1 border-transparent text-lg font-medium text-black hover:bg-blue-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2"
+                      onClick={setMaxAmount}
+                    >
                       Max
                     </button>
                   </div>
