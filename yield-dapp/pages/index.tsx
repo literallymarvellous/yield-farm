@@ -11,9 +11,12 @@ import DepositModal from "../components/DepositModal";
 
 const Home: NextPage = () => {
   const [vaults, setVaults] = useState<any[]>([]);
+  const [myVaults, setMyVaults] = useState<any[]>([]);
   const [underlying, setUnderlying] = useState("");
   const [isLoading, setIsLoading] = useState(true);
   const { isConnected } = useAccount();
+
+  const { address } = useAccount();
 
   useContractRead({
     addressOrName: "0x81BE49C9584aA772d3005778D3c814cD1A90D179",
@@ -24,6 +27,22 @@ const Home: NextPage = () => {
       if (error) console.log("error", error);
       setVaults([data]);
       setIsLoading(false);
+    },
+  });
+
+  useContractRead({
+    addressOrName: vaults[0],
+    contractInterface: Vault.abi,
+    functionName: "balanceOf",
+    args: address,
+    onSettled(data, error) {
+      if (error) console.log("error", error);
+
+      if (data) {
+        let balance = parseInt(data?.toString());
+        balance > 0 && setMyVaults((p) => [...p, vaults[0]]);
+      }
+      console.log("vault bal", data?.toString());
     },
   });
 
@@ -76,8 +95,26 @@ const Home: NextPage = () => {
 
       <section>
         <h2>My Vaults</h2>
-        {isConnected ? (
-          <div>your vaults</div>
+        {myVaults ? (
+          myVaults.map((vault) => (
+            <div key={vault} className="p-2">
+              <p>{data?.[0] && data[0]}</p>
+              <p>
+                APY:{" "}
+                {data?.[1] &&
+                  `${(
+                    (Math.pow((data[1][1].toNumber() / 1e18) * 6570 + 1, 365) -
+                      1) *
+                    100
+                  ).toFixed(2)}%`}
+              </p>
+              <p>
+                Total Assets:{" "}
+                {data?.[2] && `${data[2].div(BigNumber.from(String(1e18)))}`}
+              </p>
+              <DepositModal vault={vaults[0]} underlying={underlying} />
+            </div>
+          ))
         ) : (
           <div>
             <p>You haven&#39;t deposited in any vaults</p>
