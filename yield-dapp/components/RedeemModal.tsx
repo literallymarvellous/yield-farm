@@ -17,7 +17,7 @@ import {
 import ERC20 from "../../out/ERC20.sol/ERC20.json";
 import Vault from "../../out/AIMVault.sol/AIMVault.json";
 
-const DepositModal = ({
+const RedeemModal = ({
   vault,
   underlying,
 }: {
@@ -25,10 +25,7 @@ const DepositModal = ({
   underlying: string;
 }) => {
   const [isOpen, setIsOpen] = useState(false);
-  const [deposit, setDeposit] = useState("0");
-  const [amount, setAmount] = useState(0);
-  const [approveDisabled, setApproveDisabled] = useState(true);
-  const [depositDisabled, setDepositDisabled] = useState(true);
+  const [redeem, setRedeem] = useState("0");
 
   const { address } = useAccount();
   const { data: ConnectData } = useConnect();
@@ -40,12 +37,6 @@ const DepositModal = ({
       {
         addressOrName: underlying,
         contractInterface: ERC20.abi,
-        functionName: "allowance",
-        args: [address, vault],
-      },
-      {
-        addressOrName: underlying,
-        contractInterface: ERC20.abi,
         functionName: "name",
       },
       {
@@ -53,6 +44,17 @@ const DepositModal = ({
         contractInterface: ERC20.abi,
         functionName: "balanceOf",
         args: address,
+      },
+      {
+        addressOrName: vault,
+        contractInterface: Vault.abi,
+        functionName: "balanceOf",
+        args: address,
+      },
+      {
+        addressOrName: vault,
+        contractInterface: Vault.abi,
+        functionName: "updateTotalStrategyHoldings",
       },
     ],
     watch: true,
@@ -62,40 +64,31 @@ const DepositModal = ({
     },
   });
 
-  const { config: approvalConfig } = usePrepareContractWrite({
-    addressOrName: underlying,
-    contractInterface: ERC20.abi,
-    functionName: "approve",
-    args: [vault, parseInt(deposit)],
-    onSettled(data, error) {
-      if (error) console.log("error", error);
-
-      console.log("approval config", data);
-    },
-  });
-  const { write: approvalWrite } = useContractWrite({
-    ...approvalConfig,
-    onSettled(data, error) {
-      if (error) console.log("error", error);
-      console.log("approved", data);
-      data?.wait(confirmationNo).then((res) => console.log("confirmed", res));
-      setDepositDisabled(false);
-    },
-  });
-
-  const { config: depositConfig } = usePrepareContractWrite({
+  const { data: assetsAmount } = useContractRead({
     addressOrName: vault,
     contractInterface: Vault.abi,
-    functionName: "deposit",
-    args: [parseInt(deposit), address],
+    functionName: "previewRedeem",
+    args: data?.[2],
     onSettled(data, error) {
       if (error) console.log("error", error);
 
-      console.log("deposit config", data);
+      console.log("vault bal", data?.toString());
     },
   });
-  const { write: depositWrite } = useContractWrite({
-    ...depositConfig,
+
+  const { config: redeemConfig } = usePrepareContractWrite({
+    addressOrName: vault,
+    contractInterface: Vault.abi,
+    functionName: "redeem",
+    args: [parseInt(redeem), address, address],
+    onSettled(data, error) {
+      if (error) console.log("error", error);
+
+      console.log("redeem config", data);
+    },
+  });
+  const { write: redeemWrite } = useContractWrite({
+    ...redeemConfig,
     onSettled(data, error) {
       if (error) console.log("error", error);
 
@@ -105,70 +98,27 @@ const DepositModal = ({
   });
 
   const closeModal = () => {
-    setDeposit("0");
+    setRedeem("0");
     setIsOpen(false);
   };
 
   const openModal = () => {
-    console.log("data", data);
-    const allowance = data?.[0]?.toString();
-
-    if (allowance && parseInt(allowance) == 0) {
-      setApproveDisabled(false);
-    }
-
-    if (allowance && parseInt(allowance) > 0) {
-      setDepositDisabled(false);
-    }
-
-    console.log("dep", parseInt(deposit));
-
     setIsOpen(true);
   };
 
   const handleChange = (e: ChangeEvent<HTMLInputElement>) => {
-    const allowance = data?.[0]?.toString();
     const amount = e.target.value;
 
-    setApproveDisabled(false);
-
-    if (allowance && parseInt(allowance) > parseInt(amount)) {
-      setDepositDisabled(false);
-    }
-    setDeposit(amount);
+    setRedeem(amount);
   };
 
-  const handleApproval = () => {
-    const balance = data?.[2]?.toString();
-    if (balance && parseInt(deposit) > parseInt(balance)) {
-      return;
-    }
-
-    // setAmount(parseInt(deposit));
-    approvalWrite?.();
-  };
-
-  const handleDeposit = () => {
-    const allowance = data?.[0]?.toString();
-    const balance = data?.[2]?.toString();
-    console.log("allownace", allowance);
-
-    if (
-      allowance &&
-      balance &&
-      parseInt(allowance) < parseInt(deposit) &&
-      parseInt(balance) < parseInt(deposit)
-    ) {
-      return;
-    }
-
-    // setAmount(parseInt(deposit));
-
-    depositWrite?.();
+  const handleRedeem = () => {
+    console.log("redeem");
+    redeemWrite?.();
   };
 
   const setMaxAmount = () => {
-    data?.[2] && setDeposit(data[2].toString());
+    data?.[2] && setRedeem(data[2].toString());
   };
 
   return (
@@ -178,7 +128,7 @@ const DepositModal = ({
           className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-3 rounded"
           onClick={openModal}
         >
-          deposit
+          Redeem
         </button>
       </div>
 
@@ -212,8 +162,9 @@ const DepositModal = ({
                     <Dialog.Title
                       as="h3"
                       className="text-lg font-medium leading-6 text-gray-900"
+                      onClick={handleRedeem}
                     >
-                      Deposit
+                      Redeem
                     </Dialog.Title>
 
                     <div className="">
@@ -228,17 +179,17 @@ const DepositModal = ({
                   </div>
 
                   <div>
-                    Balance:{" "}
-                    {data?.[2] ? `${data[2]} ${data[1]}` : "Not Connected"}
+                    Vault Shares:{" "}
+                    {data?.[2] ? data[2].toString() : "Not Connected"}
                   </div>
 
-                  <div>Allowance: {data?.[0] && data[0].toString()}</div>
+                  <div>Assets: {assetsAmount && assetsAmount.toString()}</div>
 
                   <div className="my-8 flex justify-between items-center gap-4">
                     <input
                       className="shadow appearance-none border border-gray-500 w-full rounded py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
                       type="text"
-                      value={deposit}
+                      value={redeem}
                       onChange={handleChange}
                     />
 
@@ -252,22 +203,10 @@ const DepositModal = ({
 
                   <div className="flex justify-between items-center gap-3">
                     <button
-                      className={`w-full rounded-md border border-black px-2 py-1 border-transparent text-lg font-medium text-black hover:bg-blue-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2 ${
-                        approveDisabled ? "opacity-50 cursor-not-allowed" : ""
-                      }`}
-                      disabled={approveDisabled}
-                      onClick={handleApproval}
+                      className="w-full rounded-md border border-black px-2 py-1 border-transparent text-lg font-medium text-black hover:bg-blue-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2"
+                      onClick={handleRedeem}
                     >
-                      Approve
-                    </button>
-                    <button
-                      className={`w-full rounded-md border border-black px-2 py-1 border-transparent text-lg font-medium text-black hover:bg-blue-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2 ${
-                        depositDisabled ? "opacity-50 cursor-not-allowed" : ""
-                      }`}
-                      disabled={depositDisabled}
-                      onClick={handleDeposit}
-                    >
-                      Deposit
+                      Redeem
                     </button>
                   </div>
                 </Dialog.Panel>
@@ -280,4 +219,4 @@ const DepositModal = ({
   );
 };
 
-export default DepositModal;
+export default RedeemModal;

@@ -1,28 +1,44 @@
 import type { NextPage } from "next";
 import Head from "next/head";
 import Image from "next/image";
-import { MouseEventHandler, useCallback, useState, MouseEvent } from "react";
-import { useContractRead, useAccount, useContractReads } from "wagmi";
+import { useState } from "react";
+import {
+  useContractRead,
+  useAccount,
+  useContractReads,
+  useContractWrite,
+  usePrepareContractWrite,
+  useConnect,
+} from "wagmi";
 import VaultFactory from "../../out/AIMVaultFactory.sol/AIMVaultFactory.json";
 import Vault from "../../out/AIMVault.sol/AIMVault.json";
+import DeployTx from "../../broadcast/AIMVaultFactory.s.sol/5/run-latest.json";
 import Spinner from "../components/spinner";
 import { BigNumber } from "ethers";
 import DepositModal from "../components/DepositModal";
+import RedeemModal from "../components/RedeemModal";
+
+const vaultFactory = DeployTx.transactions[0].contractAddress;
+const cUSDC = "0xd87ba7a50b2e7e660f678a895e4b72e7cb4ccd9c";
 
 const Home: NextPage = () => {
   const [vaults, setVaults] = useState<any[]>([]);
-  const [myVaults, setMyVaults] = useState<any[]>([]);
+  const [myVaults, setMyVaults] = useState<any[]>();
   const [underlying, setUnderlying] = useState("");
   const [isLoading, setIsLoading] = useState(true);
-  const { isConnected } = useAccount();
 
   const { address } = useAccount();
 
+  // const { data: ConnectData } = useConnect();
+
+  // const confirmationNo = ConnectData?.chain.id === 5 ? 1 : 3;
+
   useContractRead({
-    addressOrName: "0x81BE49C9584aA772d3005778D3c814cD1A90D179",
+    addressOrName: vaultFactory,
     contractInterface: VaultFactory.abi,
     functionName: "vaults",
-    args: "0xd87ba7a50b2e7e660f678a895e4b72e7cb4ccd9c",
+    args: cUSDC,
+    watch: true,
     onSettled(data, error) {
       if (error) console.log("error", error);
       setVaults([data]);
@@ -40,7 +56,7 @@ const Home: NextPage = () => {
 
       if (data) {
         let balance = parseInt(data?.toString());
-        balance > 0 && setMyVaults((p) => [...p, vaults[0]]);
+        balance > 0 && setMyVaults([data]);
       }
       console.log("vault bal", data?.toString());
     },
@@ -69,6 +85,7 @@ const Home: NextPage = () => {
         functionName: "UNDERLYING",
       },
     ],
+    watch: true,
     onSettled(data, error) {
       if (error) console.log("error", error);
       console.log("success", data);
@@ -77,8 +94,6 @@ const Home: NextPage = () => {
       }
     },
   });
-
-  const handleDeposit = (e: MouseEvent<HTMLButtonElement>) => {};
 
   console.log("render");
   // console.log(isLoading);
@@ -91,10 +106,10 @@ const Home: NextPage = () => {
         <link rel="icon" href="/favicon.ico" />
       </Head>
 
-      <h1>Yield Farm</h1>
+      <h1 className="text-3xl">Yield Farm</h1>
 
       <section>
-        <h2>My Vaults</h2>
+        <h2 className="text-2xl">My Vaults</h2>
         {myVaults ? (
           myVaults.map((vault) => (
             <div key={vault} className="p-2">
@@ -108,23 +123,20 @@ const Home: NextPage = () => {
                     100
                   ).toFixed(2)}%`}
               </p>
-              <p>
-                Total Assets:{" "}
-                {data?.[2] && `${data[2].div(BigNumber.from(String(1e18)))}`}
-              </p>
-              <DepositModal vault={vaults[0]} underlying={underlying} />
+              <p>Total Assets: {data?.[2] && `${data[2]}`}</p>
+              <RedeemModal vault={vaults[0]} underlying={underlying} />
             </div>
           ))
         ) : (
           <div>
             <p>You haven&#39;t deposited in any vaults</p>
-            <p>FInd and deposit in a vault</p>
+            <p>Find a vault and deposit funds</p>
           </div>
         )}
       </section>
 
       <section>
-        <h2>All Vaults</h2>
+        <h2 className="text-2xl">All Vaults</h2>
 
         <div>
           {isLoading ? (
@@ -145,10 +157,7 @@ const Home: NextPage = () => {
                       100
                     ).toFixed(2)}%`}
                 </p>
-                <p>
-                  Total Assets:{" "}
-                  {data?.[2] && `${data[2].div(BigNumber.from(String(1e18)))}`}
-                </p>
+                <p>Total Assets: {data?.[2] && `${data[2]}`}</p>
                 <DepositModal vault={vaults[0]} underlying={underlying} />
               </div>
             ))

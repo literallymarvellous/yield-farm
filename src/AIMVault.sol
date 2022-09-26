@@ -191,7 +191,7 @@ contract AIMVault is ERC4626, Owned {
 
     /// @notice Updates _totalStrategyHoldings
     /// @dev sets _totalStrategyHoldings as amount of underlying token held in Compound strategy
-    function updateTotalStrategyHoldings() external onlyOwner {
+    function updateTotalStrategyHoldings() external {
         _totalStrategyHoldings = compBalanceOfUnderlying();
     }
 }

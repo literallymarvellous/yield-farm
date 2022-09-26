@@ -428,10 +428,4 @@ contract VaultTest is Test {
         assertEq(vault.totalSupply(), 0);
         assertEq(vault.totalAssets(), 0);
     }
-
-    function testCannotUpdateTotalStrategyHoldingsIfNotOwner() public {
-        vm.prank(alice);
-        vm.expectRevert("UNAUTHORIZED");
-        vault.updateTotalStrategyHoldings();
-    }
 }
