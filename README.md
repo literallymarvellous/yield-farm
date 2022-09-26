@@ -36,6 +36,9 @@ git clone repo
 cd yield-farm
 ```
 
+Web app is located at app/web directory
+Contracts at packages/contracts
+
 #### install dependecies and packages
 
 ```sh
