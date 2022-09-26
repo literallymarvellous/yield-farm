@@ -4,6 +4,10 @@
 
 #### Author: Marvellous Ahiara
 
+### Live Website: https://yieldcomp.vercel.app/
+
+Still in progress but core functionality working on testnet
+
 ### Overview:
 
 A Flexible, minimalist, and gas-optimized yield farm protocol for earning interest on ERC20 tokens through Compound Finace.
@@ -29,19 +33,34 @@ Smart Contracts: Actions performed by Protocol are done onchain and controlled b
 
 ### Setup
 
-#### CLone repo
+This is a monorepo setup built built with turbo-repo. The frontend is built with Nextjs and smart contracts with foundry. Ensure forge is installed for foundry.
+
+#### Directory
+
+yield-farm
+|** apps
+| |** web
+|  
+ |** packages
+| |** contracts
+|
+|\_\_ package.json
+
+The frontend is contained in web and smart contracts in contracts
+
+#### Clone repo
 
 ```sh
 git clone repo
 cd yield-farm
 ```
 
-Web app is located at app/web directory
-Contracts at packages/contracts
+### Working with Smart Contracts
 
 #### install dependecies and packages
 
 ```sh
+cd packages/contracts
 forge install
 ```
 
@@ -70,7 +89,7 @@ forge script script/AIMVaultFactory.s.sol:MyScript --rpc-url $GOERLI_RPC_URL --b
 
 ### Addresses
 
-#### Goerli
+#### Goerli Testnet
 
 Vault Factory: 0x7D7B81aeB0aF69d9F9612b1BEfa73ce600f21284
 Deployed USDC Vault: 0x7Be4DE03B336BD384de692A5C348806f649D4Bb7

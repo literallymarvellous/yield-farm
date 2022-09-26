@@ -10,7 +10,10 @@
     "build": "turbo run build",
     "dev": "turbo run dev --parallel",
     "lint": "turbo run lint",
-    "format": "prettier --write \"**/*.{ts,tsx,md}\""
+    "format": "prettier --write \"**/*.{ts,tsx,md}\"",
+    "forge-install": "cd packages/contracts && forge install",
+    "compile": "cd packages/contracts && forge build",
+    "test": "cd packages/contracts && forge test"
   },
   "devDependencies": {
     "prettier": "latest",
