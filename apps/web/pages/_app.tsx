@@ -34,7 +34,7 @@ function MyApp({ Component, pageProps }: AppProps) {
         theme={darkTheme()}
         modalSize="compact"
       >
-        <div className="fixed top-3 right-3">
+        <div className="fixed top-6 right-3">
           <ConnectButton />
         </div>
         <Component {...pageProps} />
